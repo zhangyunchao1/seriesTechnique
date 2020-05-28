@@ -3,9 +3,9 @@
 ## iOS Object-C
 
 ## 知识点汇总
-   1. Runtime专题
-   2. Runloop专题
-   3. 多线程讲解
+   1. Runtime专题 -- https://halfrost.com/objc_runtime_isa_class/
+   2. Runloop专题 -- https://blog.ibireme.com/2015/05/18/runloop/#more-41710
+   3. 多线程讲解 -- https://segmentfault.com/a/1190000002712678
    4. 启动加载
    5. 崩溃专题
    6. 编译、链接与加载
