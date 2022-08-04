@@ -43,4 +43,8 @@ Thread 18 Crashed:
 可以看到是**BUS_ADRALN**信号量崩溃，堆栈指向数据库查找操作，如果没有查到对应其他线程操作数据库，很容易认为没有多线程操作而忽略多线程访问问题。如果没有明确的问题指向性，我们不访从数据库基础来分析下。
 ## 问题分析
 子线程信号量崩溃，无外乎内存问题，对应野指针、多线程资源竞争等，那就先查查多线程呗，思考一个问题：sqlite是否是线程安全的？
-带着问题在官方文档看到这样一个问答 [Is SQLite threadsafe?](https://www.sqlite.org/faq.html#q6)
+带着问题在官方文档看到这样一个问答 [Is SQLite threadsafe?](https://www.sqlite.org/faq.html#q6)，大致意思是说：
+> SQLite是线程安全的。但是为了保证线程安全，SQLite必须在编译的时候将预处理的宏 SQLITE_THREADSAFE 设置为1。如果你不确定链接的SQLite二进制是否线程安全的，可以通过调用[sqlite3_threadsafe()](https://www.sqlite.org/c3ref/threadsafe.html)来确认。
+> SQLite是线程安全的，因为它使用了互斥量来串行访问通用数据结构。但是频繁的获取和释放互斥量会降低SQLite的性能。如果你不需要保证线程安全，应该禁用互斥量来最大化性能。可以参考[threading mode]获取更多的信息
+
+## 问题分析互斥
