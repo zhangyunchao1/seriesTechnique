@@ -40,3 +40,7 @@ Thread 18 Crashed:
 15   libdispatch.dylib                __dispatch_workloop_worker_thread	(in libdispatch.dylib)	712
 16   libsystem_pthread.dylib          __pthread_wqthread	(in libsystem_pthread.dylib)	272
 ```
+可以看到是**BUS_ADRALN**信号量崩溃，堆栈指向数据库查找操作，如果没有查到对应其他线程操作数据库，很容易认为没有多线程操作而忽略多线程访问问题。如果没有明确的问题指向性，我们不访从数据库基础来分析下。
+## 问题分析
+子线程信号量崩溃，无外乎内存问题，对应野指针、多线程资源竞争等，那就先查查多线程呗，思考一个问题：sqlite是否是线程安全的？
+带着问题在官方文档看到这样一个问答 [Is SQLite threadsafe?](https://www.sqlite.org/faq.html#q6)
