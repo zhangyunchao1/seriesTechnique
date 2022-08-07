@@ -8,8 +8,8 @@ BUG IN CLIENT OF libsqlite3.dylib: illegal multi-threaded access to database con
 Trigger Thread:18
 appversion : 13.12.1.10
 CFBundleShortVersionString : 1.1.0
-CFBundleName : 百度
-packagename : com.baidu.DemoProject
+CFBundleName : 测试
+packagename : com.test.DemoProject
 boot_time : 2022-07-07T20:55:22Z
 process_name : DemoProject
 process_id : 6820
@@ -32,7 +32,7 @@ Thread 18 Crashed:
 6    libsqlite3.dylib                 _sqlite3_exec	(in libsqlite3.dylib)	3228
 7    libsqlite3.dylib                 _sqlite3_exec	(in libsqlite3.dylib)	2376
 8    DemoProject                      -[FMDatabase executeQuery:withArgumentsInArray:orDictionary:orVAList:]	(in DemoProject)	(FMDatabase.m:836)	0
-9    DemoProject                      -[FMDatabase executeQuery:]	(in BaiduBoxApp)	(FMDatabase.m:0)	24
+9    DemoProject                      -[FMDatabase executeQuery:]	(in DemoProject)	(FMDatabase.m:0)	24
 10   DemoProject                      ___37-[DemoAssetManager demo_cleanAssets]_block_invoke	(in DemoProject)	(DemoAssetManager.m:81)	0
 11   libdispatch.dylib                __dispatch_call_block_and_release	(in libdispatch.dylib)	24
 12   libdispatch.dylib                __dispatch_client_callout	(in libdispatch.dylib)	16
