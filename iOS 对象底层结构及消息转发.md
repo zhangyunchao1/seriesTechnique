@@ -1,4 +1,4 @@
-# Objc Runtime
+# 对象底层结构及消息转发
 
 Objective-C是一门动态性比较强的语言，区别于C/C++，可以在运行过程中动态修改已经编译好的一些行为（包括动态添加方法、属性setter/getter方法生成、KVO等），由Runtime API来支撑，接口基本是C语言，源码由C/C++/汇编编写。
 
