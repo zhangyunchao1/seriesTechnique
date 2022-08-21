@@ -252,7 +252,8 @@ IMP lookUpImpOrForward(id inst, SEL sel, Class cls, int behavior)
 }
 ```
 方法查找流程如下：
-![image2021-5-29_16-14-26](https://user-images.githubusercontent.com/15702940/185773290-a573d3eb-f089-43fb-8964-e4ec7d5a0621.png)
+
+<img width="676" alt="image" src="https://user-images.githubusercontent.com/15702940/185773459-d42b6d29-1c25-4fd7-84cb-982e9c421788.png">
 
 ## 2. 动态方法解析
 ```
@@ -305,7 +306,8 @@ done:
 }
 ```
 当前类缓存中如果找不到，再次通过lookUpImpOrForward进行方法查找，依旧没找到返回imp = _objc_msgForward_impcache进行消息转发，流程总结如下：
-![image2021-5-29_18-31-7](https://user-images.githubusercontent.com/15702940/185773309-8f0ff716-ca5c-487b-bdd4-f94d1c75965f.png)
+
+<img width="459" alt="image" src="https://user-images.githubusercontent.com/15702940/185773451-b4ccafc0-cdd6-4768-810a-285ed0cc2909.png">
 
 
 ## 3. 消息转发
@@ -329,6 +331,7 @@ ENTRY __objc_msgForward
 END_ENTRY __objc_msgForward
 ```
 如何进行消息转发是不开源的，反汇编可以得出大致的实现流程(前人种树，后人乘凉)，如下：
+
 <img width="535" alt="image" src="https://user-images.githubusercontent.com/15702940/185773418-3964b3b3-444e-4f86-a7b0-315a095ed71e.png">
 
 注意：forwardingTargetForSelector、methodSignatureForSelector有对应的实例方法和类方法
