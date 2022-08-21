@@ -1,15 +1,19 @@
-Objc Runtime
+# Objc Runtime
 
 Objective-C是一门动态性比较强的语言，区别于C/C++，可以在运行过程中动态修改已经编译好的一些行为（包括动态添加方法、属性setter/getter方法生成、KVO等），由Runtime API来支撑，接口基本是C语言，源码由C/C++/汇编编写。
-一、类、实例对象底层结构
 
-1. isa指针
+## 一、类、实例对象底层结构
+
+### 1. isa指针
 
 NSObject定义，如下：
+```
 @interface NSObject <NSObject> {
     Class isa  OBJC_ISA_AVAILABILITY;
 }
-结合源码 objc4-824 搜索 *Class，查询到如下的代码：
+```
+结合源码 [objc4-824](https://opensource.apple.com/tarballs/objc4/objc4-824.tar.gz) 搜索 *Class，查询到如下的代码：
+```
 typedef struct objc_class *Class;
 typedef struct objc_object *id;
 
@@ -17,7 +21,9 @@ struct objc_object {
 private:
     isa_t isa;
 }
+```
 isa_t是联合体，定义如下：
+```
 union isa_t {
     isa_t() { }
     isa_t(uintptr_t value) : bits(value) { }
@@ -46,7 +52,9 @@ public:
         uintptr_t extra_rc          : 19;/*引用计数减一*/
     };
 }
+```
 实例对象 ISA & ISA_MASK 可以得到类对象实际地址，类结构Class定义如下：
+```
 typedef struct objc_class *Class;
 struct objc_class : objc_object {
     // Class ISA;
@@ -84,14 +92,18 @@ struct class_ro_t {
     protocol_list_t * baseProtocols;
     const ivar_list_t * ivars; // 成员变量列表
 }
-2.方法结构
+```
 
+### 2.方法结构
+```
 struct method_t {
     SEL name; // 函数名
     const char *types; // 编码
     IMP imp; // 函数指针
 };
+```
 types 是包含了函数返回值、参数编码的字符串，如下：
+```
 - (void)eat:(NSString *)food;
 
 // 获取方法编码
@@ -109,10 +121,13 @@ v --- 方法无返回值
 8 --- 第二个参数起始
 16 --- 第三个参数起始
 */
-可以通过 @encode() 获取，具体类型编码参见Runtime Type Encodings
-3. 方法缓存
+```
+可以通过 @encode() 获取，具体类型编码参见[Runtime Type Encodings](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html#//apple_ref/doc/uid/TP40008048-CH100)
+
+### 3. 方法缓存
 
 Class内部结构中有个方法缓存(cache_t)，用 散列表 来缓存曾经调用过的方法，结构如下：
+```
 struct cache_t {
 	struct bucket_t *buckets; // 散列表
 	uint32_t mask; // 散列表长度 -1
@@ -123,7 +138,9 @@ struct bucket {
 	uintptr_t _imp; // 方法实现
 	SEL _sel; // 方法名
 }
+```
 为什么说上面提到的 buckets 是以散列表结构存储，objc-cache.mm 中查询 insert 函数，如下：
+```
 void cache_t::insert(SEL sel, IMP imp, id receiver) {
 	// 1. 根据occupied + 1判定当前容量是否满足，否则重新开辟
 	......
@@ -149,7 +166,6 @@ void cache_t::insert(SEL sel, IMP imp, id receiver) {
     } while (fastpath((i = cache_next(i, m)) != begin));
 }
 
-
 // hash函数，获取地址值
 static inline mask_t cache_hash(SEL sel, mask_t mask) 
 {
@@ -160,13 +176,15 @@ static inline mask_t cache_hash(SEL sel, mask_t mask)
 static inline mask_t cache_next(mask_t i, mask_t mask) {
     return i ? i-1 : mask;
 }
-------
+```
 方法查找是同样的原理，底层是汇编实现，IMP cache_getImp(Class cls, SEL sel)
-二、objc_msgSend执行流程
 
-1. 方法查找
+## 二、objc_msgSend执行流程
+
+### 1. 方法查找
 
 OC方法调用在底层都转换为objc_msgSend函数调用，id objc_msgSend(id self, SEL _cmd, ...);，源码查询如下：
+```
 objc-msg-arm64.s文件，汇编语言
 
 ENTRY _objc_msgSend // 函数入口
@@ -180,7 +198,9 @@ objc-runtime-new.mm文件
 lookUpImpOrForward(obj, sel, cls, LOOKUP_INITIALIZE | LOOKUP_RESOLVER)
 resolveMethod_locked() // 动态解析
 lookUpImpOrForwardTryCache() // 再次进行缓存方法查找
+```
 详细看一下 lookUpImpOrForward 函数实现：
+```
 /***********************************************************************
 * 精简代码，反应大致逻辑，
 * 查找缓存,包括本类及父类，查找到返回 IMP，否则查找当前类及父类methodlist，至到父类为nil，返回
@@ -230,11 +250,12 @@ IMP lookUpImpOrForward(id inst, SEL sel, Class cls, int behavior)
     }
     return imp;
 }
+```
 方法查找流程如下：
+![image2021-5-29_16-14-26](https://user-images.githubusercontent.com/15702940/185773290-a573d3eb-f089-43fb-8964-e4ec7d5a0621.png)
 
-
-2. 动态方法解析
-
+## 2. 动态方法解析
+```
 /***********************************************************************
 * resolveMethod_locked
 * Call +resolveClassMethod or +resolveInstanceMethod.
@@ -282,12 +303,15 @@ done:
     }
     return imp;
 }
+```
 当前类缓存中如果找不到，再次通过lookUpImpOrForward进行方法查找，依旧没找到返回imp = _objc_msgForward_impcache进行消息转发，流程总结如下：
+![image2021-5-29_18-31-7](https://user-images.githubusercontent.com/15702940/185773309-8f0ff716-ca5c-487b-bdd4-f94d1c75965f.png)
 
 
-3. 消息转发
+## 3. 消息转发
 
 _objc_msgForward_impcache是汇编，实现如下：
+```
 STATIC_ENTRY __objc_msgForward_impcache
 
 	// 跳转到消息转发
@@ -303,9 +327,9 @@ ENTRY __objc_msgForward
 	TailCallFunctionPointer x17
 	
 END_ENTRY __objc_msgForward
+```
 如何进行消息转发是不开源的，反汇编可以得出大致的实现流程(前人种树，后人乘凉)，如下：
-
-
+<img width="535" alt="image" src="https://user-images.githubusercontent.com/15702940/185773418-3964b3b3-444e-4f86-a7b0-315a095ed71e.png">
 
 注意：forwardingTargetForSelector、methodSignatureForSelector有对应的实例方法和类方法
 
